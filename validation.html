@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Validation & DOM</title>
+    <style>
+        :root {
+            --primary: #1a3c5e;
+            --accent: #e74c3c;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --light: #f0f4f8;
+            --border: #bdc3c7;
+            --white: #ffffff;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--light); color: #2c3e50; }
+
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo { font-size: 20px; font-weight: bold; }
+        .week-badge {
+            background: var(--accent);
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        .container { max-width: 900px; margin: 30px auto; padding: 0 20px; }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--primary);
+            border-left: 4px solid var(--accent);
+            padding-left: 12px;
+            margin: 30px 0 15px;
+        }
+
+        .card {
+            background: var(--white);
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        /* ===== FORM STYLES ===== */
+        .form-group { margin-bottom: 18px; }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--primary);
+        }
+        .form-group input {
+            width: 100%;
+            padding: 11px 14px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            outline: none;
+        }
+        .form-group input:focus { border-color: var(--primary); }
+        .form-group input.valid { border-color: var(--success); background: #f0fff4; }
+        .form-group input.invalid { border-color: var(--accent); background: #fff5f5; }
+
+        .error-msg {
+            font-size: 12px;
+            color: var(--accent);
+            margin-top: 4px;
+            display: none;
+        }
+        .success-msg {
+            font-size: 12px;
+            color: var(--success);
+            margin-top: 4px;
+            display: none;
+        }
+
+        .btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+        .btn-primary { background: var(--primary); color: white; width: 100%; }
+        .btn-primary:hover { background: #2980b9; transform: translateY(-1px); }
+
+        /* ===== PASSWORD STRENGTH ===== */
+        .strength-bar {
+            height: 6px;
+            border-radius: 3px;
+            background: #e0e0e0;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+        .strength-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 3px;
+            transition: width 0.4s, background 0.4s;
+        }
+        .strength-label {
+            font-size: 12px;
+            margin-top: 4px;
+            font-weight: 600;
+        }
+
+        /* ===== LIVE TEXT PREVIEW ===== */
+        .live-preview-box {
+            background: var(--light);
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 80px;
+            font-size: 16px;
+            color: var(--primary);
+            transition: all 0.3s;
+        }
+
+        /* ===== DOM TOGGLE ===== */
+        .toggle-box {
+            background: var(--primary);
+            color: white;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin-top: 10px;
+            transition: all 0.4s;
+        }
+        .toggle-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .dom-btn {
+            padding: 10px;
+            border: 2px solid white;
+            background: transparent;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        .dom-btn:hover { background: white; color: var(--primary); }
+
+        /* ===== ALERT BOX ===== */
+        .alert {
+            padding: 14px 18px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-top: 15px;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        footer {
+            background: var(--primary);
+            color: rgba(255,255,255,0.8);
+            text-align: center;
+            padding: 15px;
+            font-size: 13px;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">ShopSmart</div>
+</header>
+
+<div class="container">
+
+    <!-- ===== TASK 1: REGISTRATION FORM WITH VALIDATION ===== -->
+    <div class="section-title">Fig 1 & 2: Registration Form — JavaScript Validation + Password Strength</div>
+    <div class="card">
+        <h3 style="margin-bottom:20px; color:var(--primary);">Create Your Account</h3>
+
+        <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="fullname" placeholder="e.g. John Kamau" oninput="validateName()">
+            <div class="error-msg" id="nameError">Name must be at least 3 characters</div>
+            <div class="success-msg" id="nameOk">Looks good!</div>
+        </div>
+
+        <div class="form-group">
+            <label>Email Address</label>
+            <input type="text" id="email" placeholder="e.g. john@gmail.com" oninput="validateEmail()">
+            <div class="error-msg" id="emailError">Please enter a valid email address</div>
+            <div class="success-msg" id="emailOk">Valid email!</div>
+        </div>
+
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="password" placeholder="Create a strong password" oninput="checkPasswordStrength()">
+            <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+            <div class="strength-label" id="strengthLabel"></div>
+            <div class="error-msg" id="passwordError">Password must be at least 8 characters</div>
+        </div>
+
+        <div class="form-group">
+            <label>Confirm Password</label>
+            <input type="password" id="confirmPass" placeholder="Re-enter your password" oninput="validateConfirmPass()">
+            <div class="error-msg" id="confirmError">Passwords do not match</div>
+            <div class="success-msg" id="confirmOk">Passwords match!</div>
+        </div>
+
+        <button class="btn btn-primary" onclick="submitForm()">Create Account</button>
+
+        <div class="alert alert-success" id="formSuccess">Account created successfully! Welcome aboard.</div>
+        <div class="alert alert-error" id="formError">Please fix the errors above before submitting.</div>
+    </div>
+
+    <!-- ===== TASK 2: LIVE TEXT PREVIEW (DOM MANIPULATION) ===== -->
+    <div class="section-title">Fig 3: Live Text Preview — DOM Manipulation</div>
+    <div class="card">
+        <h3 style="margin-bottom:15px; color:var(--primary);">✏️ Product Name Generator</h3>
+        <div class="form-group">
+            <label>Type your product name below:</label>
+            <input type="text" id="liveInput" placeholder="Start typing..." oninput="updatePreview()">
+        </div>
+        <p style="font-size:13px; color:#7f8c8d; margin-bottom:8px;">Live Preview:</p>
+        <div class="live-preview-box" id="livePreview">Your product name will appear here...</div>
+        <div style="margin-top:10px; display:flex; gap:10px;">
+            <button class="btn" style="background:var(--primary);color:white;font-size:13px;" onclick="toUpper()">UPPERCASE</button>
+            <button class="btn" style="background:var(--success);color:white;font-size:13px;" onclick="toLower()">lowercase</button>
+            <button class="btn" style="background:var(--warning);color:white;font-size:13px;" onclick="clearInput()">Clear</button>
+        </div>
+    </div>
+
+    <!-- ===== TASK 4: DOM SHOW/HIDE & BUTTON EVENTS ===== -->
+    <div class="section-title">Fig 4: Dynamic Menu & Hide/Show Elements</div>
+    <div class="card">
+        <h3 style="margin-bottom:15px; color:var(--primary);">DOM Event Playground</h3>
+        <div class="toggle-grid">
+            <button class="dom-btn" style="background:var(--primary); border-color:var(--primary); color:white;" onclick="toggleBox('blue')">Show Blue Panel</button>
+            <button class="dom-btn" style="background:var(--accent); border-color:var(--accent); color:white;" onclick="toggleBox('red')">Show Red Panel</button>
+            <button class="dom-btn" style="background:var(--success); border-color:var(--success); color:white;" onclick="toggleBox('green')">Show Green Panel</button>
+        </div>
+
+        <div id="blueBox" class="toggle-box" style="display:none; background:var(--primary);">
+            <strong>Blue Panel Active!</strong><br>This element was hidden using <code>display:none</code> and revealed with JavaScript.
+        </div>
+        <div id="redBox" class="toggle-box" style="display:none; background:var(--accent);">
+            <strong>Red Panel Active!</strong><br>Clicking the button triggered an <code>onclick</code> event handler.
+        </div>
+        <div id="greenBox" class="toggle-box" style="display:none; background:var(--success);">
+            <strong>Green Panel Active!</strong><br>DOM manipulation changes the page without reloading.
+        </div>
+
+        <div style="margin-top:15px; display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn" style="background:#7f8c8d;color:white;font-size:13px;" onclick="hideAll()">Hide All Panels</button>
+            <button class="btn" style="background:var(--primary);color:white;font-size:13px;" onclick="changeBodyColor()">Toggle Background</button>
+            <button class="btn" style="background:var(--warning);color:white;font-size:13px;" onclick="showAlert()">Show Alert</button>
+        </div>
+        <p style="margin-top:12px;font-size:13px;color:#7f8c8d;" id="clickCounter">Buttons clicked: 0</p>
+    </div>
+
+</div>
+<script src="validation.js"></script>
+</body>
+</html>
